@@ -60,7 +60,6 @@ void simcom_innoway_mqtt_event_handler(void *handler_args, esp_event_base_t base
 	switch (event_id) {
 	case SIMCOM_MQTT_INNOWAY_CONNECTED:
 		check_connect = 1;
-		simcom_innoway_mqtt_subscribe(client, "device/temp3", 0);
 		ESP_LOGI(TAG, "SIMCOM_MQTT_INNOWAY_CONNECTED");
 		break;
 	case SIMCOM_MQTT_INNOWAY_DISCONNECTED:
@@ -144,25 +143,6 @@ void app_main(void)
 			count = 0;
 			count_un = 0;
 		}
-		// else if(count_un == 2){
-		// 	printf("STOP MQTT\r\n");
-		// 	simcom_innoway_mqtt_stop(client);
-		// 	vTaskDelay(2500/portTICK_RATE_MS);
-		// 	count_un = 3;
-		// }
-		// else if(count_un == 3){
-		// 	if (simcom_is_registered(3))
-		// 	{
-		// 		ESP_LOGI(TAG, "NETWORK IS REGISTERED");
-		// 		vTaskDelay(2000/portTICK_RATE_MS);
-		// 		if(simcom_innoway_mqtt_start(client)){
-		// 			count_un = 0;
-		// 			count = 0;
-		// 			sprintf(topic, "device/temp1");
-		// 			simcom_innoway_mqtt_subscribe(client, topic, 0);
-		// 		}
-		// 	}
-		// }
 		vTaskDelay(2500/portTICK_RATE_MS);
 	}
 }
