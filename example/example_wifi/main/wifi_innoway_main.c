@@ -25,6 +25,7 @@ esp_mqtt_client_handle_t Innoway_Mqtt_client;
 static EventGroupHandle_t s_wifi_event_group;
 static int s_retry_num = 0;
 static const char *TAG = "MQTT_INNOWAY_EXAMPLE";
+int check_connect_mqtt = 0;
 TaskHandle_t mqtt_task;
 /*Initial wifi*/
 
@@ -116,14 +117,14 @@ void Innoway_MQTT_event_callback(void *handler_args, esp_event_base_t base, int3
     int msg_id;
     switch ((esp_mqtt_event_id_t)event_id){
         case MQTT_EVENT_CONNECTED:
+            check_connect_mqtt = 1;
             ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
-            // vTaskResume(mqtt_task);
             mqtt_innoway_subscribe(Innoway_Mqtt_client, TOPIC_MQTT_1, 0);
             mqtt_innoway_subscribe(Innoway_Mqtt_client, TOPIC_MQTT_2, 0);
             break;
         case MQTT_EVENT_DISCONNECTED:
+            check_connect_mqtt = 0;
             ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
-            // vTaskSuspend(mqtt_task);
             break;
         case MQTT_EVENT_SUBSCRIBED:
             ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED");
@@ -171,8 +172,37 @@ void mqtt_example(void * arg)
 			mqtt_innoway_publish(Innoway_Mqtt_client, TOPIC_MQTT_2, DATA_PUBLISH_2, strlen(DATA_PUBLISH_2), 0, 0);
 			vTaskDelay(1000/portTICK_RATE_MS);
 		}
+        
+        if(check_connect_mqtt == 1){
+            ESP_LOGI(TAG, "INNOWAY_DISCONNECTED\r\n");
+            mqtt_innoway_disconnect(Innoway_Mqtt_client);
+            vTaskDelay(1000/portTICK_RATE_MS);
+        }
+        
+        if(check_connect_mqtt == 0){
+            ESP_LOGI(TAG, "INNOWAY_RECONNECTED\r\n");
+            mqtt_innoway_reconnect(Innoway_Mqtt_client);
+            vTaskDelay(2000/portTICK_RATE_MS);
+        }
+
+        for(int i = 0; i < 10; i++)
+		{
+			mqtt_innoway_publish(Innoway_Mqtt_client, TOPIC_MQTT_1, DATA_PUBLISH_1, strlen(DATA_PUBLISH_1), 0, 0);
+			vTaskDelay(1000/portTICK_RATE_MS);
+			mqtt_innoway_publish(Innoway_Mqtt_client, TOPIC_MQTT_2, DATA_PUBLISH_2, strlen(DATA_PUBLISH_2), 0, 0);
+			vTaskDelay(1000/portTICK_RATE_MS);
+		}
+
+        if(check_connect_mqtt == 1){
+            check_connect_mqtt = 0;
+            ESP_LOGI(TAG, "INNOWAY_STOP\r\n");
+            mqtt_innoway_stop(Innoway_Mqtt_client);
+            vTaskDelay(1000/portTICK_RATE_MS);
+        }
+        vTaskDelete(NULL);
 	}
 }
+
 void app_main(void)
 {
 	//Init nvs_flash to store wifi information
@@ -184,10 +214,9 @@ void app_main(void)
         err = nvs_flash_init();
     }
     wifi_init_sta();
-	//after pair success, we can use device id and device token to connect Inooway MQTT borker
     Innoway_Mqtt_client = mqtt_innoway_start(deviceID, deviceToken, Innoway_MQTT_event_callback);
 	if(Innoway_Mqtt_client)
     {
-		xTaskCreate(mqtt_example, "mqtt_example", 4096, NULL, 3, mqtt_task);
+		xTaskCreate(mqtt_example, "mqtt_example", 4096, NULL, 3, NULL);
 	}
 }
