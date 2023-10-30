@@ -26,6 +26,7 @@ enum
 {
 	SIMCOM_MQTT_INNOWAY_CONNECTED,
 	SIMCOM_MQTT_INNOWAY_DISCONNECTED,
+    SIMCOM_MQTT_INNOWAY_STOP,
 	SIMCOM_MQTT_INNOWAY_SUBSCRIBED,
 	SIMCOM_MQTT_INNOWAY_PUBLISHED,
 	SIMCOM_MQTT_INNOWAY_UNSUBSCRIBED,
@@ -102,6 +103,8 @@ bool simcom_innoway_mqtt_publish(simcom_innoway_mqtt_client_t client, char* topi
 bool simcom_innoway_mqtt_reconnect(simcom_innoway_mqtt_client_t client);
 bool simcom_innoway_mqtt_disconnect(simcom_innoway_mqtt_client_t client);
 bool echoATSwtich(int enable, int retry);
-bool Simcom_powerOn(gpio_num_t powerKey);
-void Simcom_powerOff_(gpio_num_t powerKey);
+bool AT_CheckSimStatus( int retry);
+void lte_sim_init();
+void lte_sim_power_off();
+void lte_sim_power_on();
 #endif /* INNOWAY_SIM_H_ */
